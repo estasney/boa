@@ -194,10 +194,6 @@ def parse_oab(oab_path, output_path):
 
             json_out.write(json.dumps(rec) + '\n')
 
-# if __name__ == "__main__":
-#     oab_path = r"C:\Users\estasney\AppData\Local\Microsoft\Outlook\Offline Address Books\c27d0374-b0ab-4feb-8a07-8c7968c9df3f\udetails.oab"
-#     json_path = "oab.json"
-#     parse_oab(oab_path, json_path)
 
 if __name__ == "__main__":
     start_time = datetime.now()
@@ -212,19 +208,14 @@ if __name__ == "__main__":
     parse_oab(args.oabfile[0], json_out)
     elapsed = datetime.now() - start_time
     print("Finished .oab parse in {}".format(elapsed))
-    json_out.close()
 
 
     # read the output file into memory and write it back out as valid JSON
 
     def get_original_json():
         with open(args.output, 'r') as data_file:
-            raw_data = data_file.read().splitlines()
-            original_data = []
-            for d in raw_data:
-                json_data = json.loads(d)
-                original_data.append(json_data)
-        return original_data
+            return [json.loads(x) for x in data_file.read().splitlines()]
+
 
     print("Validating JSON Data")
     start = datetime.now()
