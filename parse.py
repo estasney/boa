@@ -103,7 +103,9 @@ def parse_oab(oab_path, output_path):
             def stringify_bytes(record_data):
                 output_data = {}
                 for k, v in record_data.items():
-                    if isinstance(v, bytes):
+                    if isinstance(v, str):
+                        output_data[k] = v
+                    elif isinstance(v, bytes):
                         output_data[k] = v.decode()
                     elif isinstance(v, list):
                         temp_list = []
