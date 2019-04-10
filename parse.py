@@ -9,7 +9,7 @@ import tempfile
 from datetime import datetime
 from struct import unpack
 
-from schema import PidTagSchema
+from schema import PidTagSchema, PidTypeSchema
 from pathlib import Path
 
 
@@ -35,6 +35,8 @@ class GalParser(object):
         self.output_path = output_path if output_path is not None else os.path.join(str(Path.home()), "output.csv")
         self.gal_path = gal_path if gal_path is not None else self.get_gal_path()
         self.temp_file_ = None
+        self.unknown_indices = set([])
+        self.unknown_indices_names = {}
 
     @property
     def temp_file(self):
@@ -43,6 +45,11 @@ class GalParser(object):
         else:
             self.temp_file_ = tempfile.NamedTemporaryFile("w+b")
             return self.temp_file_
+
+    def warn_unknown_index(self, prop_id):
+        if prop_id not in self.unknown_indices:
+            self.unknown_indices.add(prop_id)
+            print("Unknown index {}".format(prop_id))
 
     def get_gal_path(self):
         home_path = str(Path.home())
@@ -147,9 +154,10 @@ class GalParser(object):
                 for i in indices:
                     PropID = hexify(OAB_Atts[i])
                     if PropID not in PidTagSchema:
-                        raise "This property id (" + PropID + ") does not exist in the schema"
-
-                    (Name, Type) = PidTagSchema[PropID]
+                        self.warn_unknown_index(PropID)
+                        Name, Type = PropID, PidTypeSchema[PropID[-4:]]
+                    else:
+                        Name, Type = PidTagSchema[PropID]
 
                     if Type == "PtypString8" or Type == "PtypString":
                         val = read_str()
@@ -224,7 +232,7 @@ class GalParser(object):
 
         df = pd.DataFrame(json_data)
         del json_data
-        df.to_csv(self.output_path)
+        df.to_csv(self.output_path, index=False)
 
 
 if __name__ == "__main__":
